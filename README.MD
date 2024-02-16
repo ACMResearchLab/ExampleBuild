@@ -1,11 +1,11 @@
 
-#### Startup Guide for DDQN Stock Research Proposal
+## Startup Guide for DDQN Stock Research Proposal
 
 This is the `README.md` for the ACM DDQN RL Stock Trading Research Proposal. Currently the project is based off the Research Paper [Deep reinforcement learning stock market trading, utilizing a CNN with candlestick images](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0263181) by Andrew Brim and Nicholas S. Flann.
 
 After researching we found a [codebase](https://github.com/AntoniSkup/Winegold-Technologies/tree/main) written by Antoni Skup, after contacting him we were able to find some updated code from him [here](https://github.com/AntoniSkup/Winegold-Technologies-v3)
 
-##### Requirements
+### Requirements
 
 If you haven't already please install [anaconda](https://www.anaconda.com/download) and open a conda prompt. Here we can make new venv 
 
@@ -46,7 +46,7 @@ Its also possible to take the requirements.txt included in the GitHub after clon
 ```
 pip install -r requirements.txt
 ```
-##### Git Cloning and Code
+### Git Cloning and Code
 
 Now that you have a virtual environment to work in with *hopefully* I listed all the packages needed, if not I'm sure a quick run of the code will reveal any missing packages. I don't believe you need to as installing TensorFlow and some of these other packages will automatically drag `numpy` and `pandas` but if you don't have those in your environment you can do a quick pip install
 
