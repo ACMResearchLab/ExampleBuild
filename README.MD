@@ -21,6 +21,8 @@ conda activate ddqn-env
 
 The main things we will need can be installed with pip with the exception of the package [TA-Lib](https://ta-lib.org) to do this we will take advantage of `conda`. As the `pip install ta-lib` doesn't seem to build
 
+**This does not need to be built if we are not creating new data**
+
 ```
 conda install -c conda-forge ta-lib
 ```
