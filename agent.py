@@ -126,10 +126,10 @@ class Agent(object):
         print(f'self.epsilon: {self.epsilon}')
         if rand < self.epsilon:
             print("is random")
-            action = np.random.choice(self.action_space)
+            action = np.random.choice(self.action_space) 
         else:
             state_3d = state.reshape(1, 200, 300, 4)
-            actions = self.q_eval.predict(state_3d)
+            actions = self.q_target.predict(state_3d) #this was originally q_eval, p sure it should be q_target
             print(actions)
             action = np.argmax(actions)
 
