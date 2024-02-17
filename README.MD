@@ -48,6 +48,7 @@ Its also possible to take the requirements.txt included in the GitHub after clon
 ```
 pip install -r requirements.txt
 ```
+
 ### Git Cloning and Code
 
 Now that you have a virtual environment to work in with *hopefully* I listed all the packages needed, if not I'm sure a quick run of the code will reveal any missing packages. I don't believe you need to as installing TensorFlow and some of these other packages will automatically drag `numpy` and `pandas` but if you don't have those in your environment you can do a quick pip install
@@ -58,8 +59,21 @@ To clone this repository
 git clone git@github.com:ACMResearchLab/ExampleBuild.git
 ```
 
+For this specific branch, run: 
+
+```
+git clone --branch buildv2 git@github.com:ACMResearchLab/ExampleBuild.git
+cd ExampleBuild 
+unzip Candle\ Data.zip
+```
+
+and then `python main.py`
+
 This will pull in both our main branch which is closely related to the first codebase, and the *buildv2* branch is closer to the second codebase given to us.
 
 Note if you want to create candles yourself utilizing our *candles.py* our getBarData method is dependent on polygon and the api key in the `.env` file. If you don't pay for this API, don't worry a free account in [polygon.io](https://polygon.io) will still allow you to make enough api calls to get data and form your own candle graphs. 
 
 From here you can run the main function in either of the branches, the agent should fly by the 64 days and then start chugging along
+
+### Instructions to run
+
