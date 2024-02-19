@@ -2,7 +2,7 @@ import keras
 keras.__version__
 
 import tensorflow as tf
-from keras.layers import Dense, Activation, Conv2D, Input
+from keras.layers import Dense, Activation, Conv2D, Input, Flatten
 from keras.models import Sequential, load_model
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.models import Model
@@ -19,8 +19,20 @@ class ReplayBuffer(object):
         self.mem_cntr = 0 #mem counter 
         self.discrete = discrete
         #dim1, dim2, dim3 = input_shape
-        self.state_memory = np.zeros((self.mem_size, input_shape)) 
-        self.new_state_memory = np.zeros((self.mem_size, input_shape))
+        self.mem_size = max_size
+        self.mem_cntr = 0
+        self.discrete = discrete
+        # Adjusting input_shape handling, as model v1 [200,300,4] and model v2 240000
+        if isinstance(input_shape, int):
+            self.state_memory = np.zeros((self.mem_size, input_shape))
+            self.new_state_memory = np.zeros((self.mem_size, input_shape))
+        elif isinstance(input_shape, list) or isinstance(input_shape, tuple):
+            # If input_shape is a list or tuple, convert it to a total size
+            total_size = np.prod(input_shape)
+            self.state_memory = np.zeros((self.mem_size, total_size))
+            self.new_state_memory = np.zeros((self.mem_size, total_size))
+        else:
+            raise ValueError("input_shape must be an int, list, or tuple")
         dtype = np.int8 if self.discrete else np.float32
         self.action_memory = np.zeros((self.mem_size, n_actions), dtype=dtype)
         self.reward_memory = np.zeros(self.mem_size)
@@ -53,34 +65,59 @@ class ReplayBuffer(object):
 
         return states, actions, rewards, states_, terminal, 
 
-def build_dqn(lr, n_actions, input_dims, fc1_dims, fc2_dims):
-    
-    model = Sequential([
-            layers.Conv2D(filters=16, kernel_size=(3,3), activation='relu', input_shape=(200,300,4)),
-            # THIS IS SUPER DUMB THAT I USED POOLING
-            # TODO DO NOT USE POOLING
-            layers.Conv2D(filters=32, kernel_size=(3,3), activation='relu'),
-            layers.BatchNormalization(),
-            layers.MaxPooling2D((2,2)),
-            layers.Conv2D(filters=64, kernel_size=(3,3), activation='relu'),
-            layers.BatchNormalization(),
-            layers.MaxPooling2D((2,2)),
-            layers.Conv2D(filters=128, kernel_size=(3,3), activation='relu'),
-            layers.BatchNormalization(),
-            layers.MaxPooling2D((2,2)),
-            layers.Conv2D(filters=256, kernel_size=(3,3), activation='relu'),
-            layers.BatchNormalization(),
-            layers.MaxPooling2D((2,2)),
-            layers.Conv2D(filters=512, kernel_size=(3,3), activation='relu'),
-            layers.BatchNormalization(),
-            layers.MaxPooling2D((2,2)),
-            layers.Dropout(0.5),
-            #Dense
-            layers.Flatten(),
-            layers.Dense(128, activation='relu'),
-            layers.Dense(64, activation='relu'),
-            layers.Dense(n_actions, activation='softmax')
-    ])
+def build_dqn(lr, n_actions, input_dims, fc1_dims, fc2_dims, use_v1_model=False):
+
+    if use_v1_model:
+        model = Sequential([
+            Input( shape=input_dims),
+            #-------------------------------------------------------
+            # Changes - J
+
+            # This is the original model that was part of the first code base
+            # we check to see if our bool use_v1_model is true, if so use this model
+            # if not then use the other model
+            
+            #--------------------------------------------------------
+            Conv2D(filters=128 , activation="relu", kernel_size=(5,5)),
+            Conv2D(filters=256, activation="relu", kernel_size=(5,5)),
+            Conv2D(filters=512, activation="relu", kernel_size=(5,5)),
+            Flatten(),
+            # If there will be errors persisting, relu activation will be added
+            # Conv2D('relu', filter=128),
+
+            # Later we might uncomment this part, however the paper hasn't mentioned anything regarding this type of syntax
+            # Dense(fc2_dims),
+            # Activation('relu'),
+            Dense(n_actions) 
+            # n_actions will be 3 (buy, sell, hold)
+        ])
+    else:
+        model = Sequential([
+                layers.Conv2D(filters=16, kernel_size=(3,3), activation='relu', input_shape=(200,300,4)),
+                # THIS IS SUPER DUMB THAT I USED POOLING
+                # TODO DO NOT USE POOLING
+                layers.Conv2D(filters=32, kernel_size=(3,3), activation='relu'),
+                layers.BatchNormalization(),
+                layers.MaxPooling2D((2,2)),
+                layers.Conv2D(filters=64, kernel_size=(3,3), activation='relu'),
+                layers.BatchNormalization(),
+                layers.MaxPooling2D((2,2)),
+                layers.Conv2D(filters=128, kernel_size=(3,3), activation='relu'),
+                layers.BatchNormalization(),
+                layers.MaxPooling2D((2,2)),
+                layers.Conv2D(filters=256, kernel_size=(3,3), activation='relu'),
+                layers.BatchNormalization(),
+                layers.MaxPooling2D((2,2)),
+                layers.Conv2D(filters=512, kernel_size=(3,3), activation='relu'),
+                layers.BatchNormalization(),
+                layers.MaxPooling2D((2,2)),
+                layers.Dropout(0.5),
+                #Dense
+                layers.Flatten(),
+                layers.Dense(128, activation='relu'),
+                layers.Dense(64, activation='relu'),
+                layers.Dense(n_actions, activation='softmax')
+        ])
         # Input(shape=(200,300,4)),
         # Dense(fc1_dims, ),
         # Activation('relu'),
@@ -100,7 +137,7 @@ def build_dqn(lr, n_actions, input_dims, fc1_dims, fc2_dims):
 
 
 class Agent(object):
-    def __init__(self, alpha, gamma, n_actions, epsilon, batch_size, input_dims, epsilon_dec=0.996, epsilon_end=0.01, mem_size=1000000, fname='ddqn_model.h5', replace_target=100):
+    def __init__(self, alpha, gamma, n_actions, epsilon, batch_size, input_dims, epsilon_dec=0.996, epsilon_end=0.01, mem_size=1000000, fname='Model_Alpha.h5', replace_target=100, use_v1_model=False):
         self.n_actions = n_actions
         self.action_space = [i for i in range(self.n_actions)]
         self.model_file=fname
@@ -112,9 +149,9 @@ class Agent(object):
         self.model = fname
         self.replace_target = replace_target
         self.memory = ReplayBuffer(mem_size, input_dims, n_actions, True)
-        self.q_eval = build_dqn(alpha, n_actions, input_dims, 256, 256) #theres no point to the input dims parameter
-
-        self.q_target = build_dqn(alpha, n_actions, input_dims, 256, 256)
+        #added passing of boolean of use_v1_model
+        self.q_eval = build_dqn(alpha, n_actions, input_dims, 256, 256, use_v1_model) #theres no point to the input dims parameter
+        self.q_target = build_dqn(alpha, n_actions, input_dims, 256, 256, use_v1_model)
 
     def remember(self, state, action, reward, new_state, done, ):
         self.memory.store_transition(state, action, reward, new_state, done, ) 
