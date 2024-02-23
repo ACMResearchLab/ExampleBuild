@@ -88,7 +88,7 @@ def build_dqn(lr, n_actions, input_dims, fc1_dims, fc2_dims, use_v1_model=False)
             # Later we might uncomment this part, however the paper hasn't mentioned anything regarding this type of syntax
             # Dense(fc2_dims),
             # Activation('relu'),
-            Dense(n_actions) 
+            Dense(n_actions, activation = 'softmax') 
             # n_actions will be 3 (buy, sell, hold)
         ])
     else:
