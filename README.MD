@@ -62,7 +62,7 @@ git clone git@github.com:ACMResearchLab/ExampleBuild.git
 For this specific branch, run: 
 
 ```
-git clone --branch buildv2 git@github.com:ACMResearchLab/ExampleBuild.git
+git clone --branch buildv2 https://github.com/ACMResearchLab/ExampleBuild.git
 cd ExampleBuild 
 unzip Candle\ Data.zip
 ```
