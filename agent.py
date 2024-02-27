@@ -1,6 +1,8 @@
 import keras
 keras.__version__
 
+
+from model import DeepNet
 import tensorflow as tf
 from keras.layers import Dense, Activation, Conv2D, Input, Flatten
 from keras.models import Sequential, load_model
@@ -92,32 +94,34 @@ def build_dqn(lr, n_actions, input_dims, fc1_dims, fc2_dims, use_v1_model=False)
             # n_actions will be 3 (buy, sell, hold)
         ])
     else:
-        model = Sequential([
-                layers.Conv2D(filters=16, kernel_size=(3,3), activation='relu', input_shape=(200,300,4)),
-                # THIS IS SUPER DUMB THAT I USED POOLING
-                # TODO DO NOT USE POOLING
-                layers.Conv2D(filters=32, kernel_size=(3,3), activation='relu'),
-                layers.BatchNormalization(),
-                layers.MaxPooling2D((2,2)),
-                layers.Conv2D(filters=64, kernel_size=(3,3), activation='relu'),
-                layers.BatchNormalization(),
-                layers.MaxPooling2D((2,2)),
-                layers.Conv2D(filters=128, kernel_size=(3,3), activation='relu'),
-                layers.BatchNormalization(),
-                layers.MaxPooling2D((2,2)),
-                layers.Conv2D(filters=256, kernel_size=(3,3), activation='relu'),
-                layers.BatchNormalization(),
-                layers.MaxPooling2D((2,2)),
-                layers.Conv2D(filters=512, kernel_size=(3,3), activation='relu'),
-                layers.BatchNormalization(),
-                layers.MaxPooling2D((2,2)),
-                layers.Dropout(0.5),
-                #Dense
-                layers.Flatten(),
-                layers.Dense(128, activation='relu'),
-                layers.Dense(64, activation='relu'),
-                layers.Dense(n_actions, activation='softmax')
-        ])
+#         model = Sequential([
+#                 layers.Conv2D(filters=16, kernel_size=(3,3), activation='relu', input_shape=(200,300,4)),
+#                 # THIS IS SUPER DUMB THAT I USED POOLING
+#                 # TODO DO NOT USE POOLING
+#                 layers.Conv2D(filters=32, kernel_size=(3,3), activation='relu'),
+#                 layers.BatchNormalization(),
+#                 layers.MaxPooling2D((2,2)),
+#                 layers.Conv2D(filters=64, kernel_size=(3,3), activation='relu'),
+#                 layers.BatchNormalization(),
+#                 layers.MaxPooling2D((2,2)),
+#                 layers.Conv2D(filters=128, kernel_size=(3,3), activation='relu'),
+#                 layers.BatchNormalization(),
+#                 layers.MaxPooling2D((2,2)),
+#                 layers.Conv2D(filters=256, kernel_size=(3,3), activation='relu'),
+#                 layers.BatchNormalization(),
+#                 layers.MaxPooling2D((2,2)),
+#                 layers.Conv2D(filters=512, kernel_size=(3,3), activation='relu'),
+#                 layers.BatchNormalization(),
+#                 layers.MaxPooling2D((2,2)),
+#                 layers.Dropout(0.5),
+#                 #Dense
+#                 layers.Flatten(),
+#                 layers.Dense(128, activation='relu'),
+#                 layers.Dense(64, activation='relu'),
+#                 layers.Dense(n_actions, activation='softmax')
+#         ])
+          model = DeepNet(n_actions) 
+
         # Input(shape=(200,300,4)),
         # Dense(fc1_dims, ),
         # Activation('relu'),
@@ -186,11 +190,9 @@ class Agent(object):
             q_eval = self.q_eval.predict(fix)
 
 
-
             fix2 = state.reshape(64,200, 300, 4)
             q_pred = self.q_eval.predict(fix2)
             
-
 
             max_actions = np.argmax(q_eval, axis=1)
 
@@ -201,7 +203,7 @@ class Agent(object):
             q_target[batch_index, action_indeces] = reward + self.gamma * q_next[batch_index, max_actions.astype(int)] *done
 
 
-            _ = self.q_eval.fit(fix2, q_target, verbose=2)
+            _ = self.q_eval.fit(fix2, q_target, epochs=64, verbose=2)
 
             self.epsilon = self.epsilon*self.epsilon_dec if self.epsilon > self.epsilon_min else self.epsilon_min
 
