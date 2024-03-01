@@ -92,3 +92,71 @@ class DeepNet(tf.keras.Model):
         x = self.fin(x)
         
         return x 
+
+
+class deepModel(tf.keras.Model):
+    def __init__(self, input_shape, n_actions):
+        super(deepModel, self).__init__()
+        self.conv1 = Conv2D(filters=16, kernel_size=(3,3), activation='relu', input_shape=input_shape)
+        self.conv2 = Conv2D(filters=32, kernel_size=(3,3), activation='relu')
+        self.bn1 = BatchNormalization()
+        self.pool1 = MaxPooling2D((2,2))
+        self.conv3 = Conv2D(filters=64, kernel_size=(3,3), activation='relu')
+        self.bn2 = BatchNormalization()
+        self.pool2 = MaxPooling2D((2,2))
+        self.conv4 = Conv2D(filters=128, kernel_size=(3,3), activation='relu')
+        self.bn3 = BatchNormalization()
+        self.pool3 = MaxPooling2D((2,2))
+        self.conv5 = Conv2D(filters=256, kernel_size=(3,3), activation='relu')
+        self.bn4 = BatchNormalization()
+        self.pool4 = MaxPooling2D((2,2))
+        self.conv6 = Conv2D(filters=512, kernel_size=(3,3), activation='relu')
+        self.bn5 = BatchNormalization()
+        self.pool5 = MaxPooling2D((2,2))
+        self.dropout = Dropout(0.5)
+        self.flatten = Flatten()
+        self.dense1 = Dense(128, activation='relu')
+        self.dense2 = Dense(64, activation='relu')
+        self.dense3 = Dense(n_actions, activation='softmax')
+        
+    def call(self, inputs):
+        x = self.conv1(inputs)
+        x = self.conv2(x)
+        x = self.bn1(x)
+        x = self.pool1(x)
+        x = self.conv3(x)
+        x = self.bn2(x)
+        x = self.pool2(x)
+        x = self.conv4(x)
+        x = self.bn3(x)
+        x = self.pool3(x)
+        x = self.conv5(x)
+        x = self.bn4(x)
+        x = self.pool4(x)
+        x = self.conv6(x)
+        x = self.bn5(x)
+        x = self.pool5(x)
+        x = self.dropout(x)
+        x = self.flatten(x)
+        x = self.dense1(x)
+        x = self.dense2(x)
+        return self.dense3(x)
+
+
+class shallowModel(tf.keras.Model):
+    def __init__(self, input_dims, n_actons):
+        super(shallowModel, self).__init__()
+        self.conv1 = Conv2D(filters=128, kernel_size=(5,5))
+        self.conv2 = Conv2D(filters=256, kernel_size=(5,5))
+        self.conv3 = Conv2D(filters=512, kernel_size=(5,5))
+        self.act = tf.keras.layers.Activation('relu')
+        self.flatten = Flatten()
+        self.dense = layers.Dense(n_actons, activation='softmax')
+
+    def call(self, inputs):
+        x = self.conv1(inputs)
+        x = self.conv2(x)
+        x = self.conv3(x)
+        x = self.flatten(x)
+        return self.dense(x)
+    
