@@ -135,7 +135,7 @@ def build_dqn(lr, n_actions, input_dims, fc1_dims, fc2_dims, use_v1_model=False)
         # MaxPooling2D((2, 2)),
         # Conv2D(64, (3, 3), activation='relu'),
 
-    model.compile(optimizer=Adam(lr=lr), loss='mse')
+    model.compile(optimizer=Adam(lr=lr), loss='categorical_crossentropy')
     return model
 
 
