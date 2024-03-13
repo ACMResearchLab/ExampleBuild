@@ -67,11 +67,18 @@ class ReplayBuffer(object):
 
         return states, actions, rewards, states_, terminal, 
 
-def build_dqn(lr, n_actions, input_dims, fc1_dims, fc2_dims, use_v1_model=False):
+def build_dqn(lr, n_actions, input_dims, fc1_dims, fc2_dims, model_type):
 
-    if use_v1_model:
-        model = Sequential([
-            Input( shape=input_dims),
+    if model_type == 'shallow':
+        model = shallowModel(input_dims, n_actions);
+    elif model_type == 'deep':
+        model = deepModel(input_dims, n_actions);
+    else:
+        model = DeepNet(n_actions);
+    
+    # if use_v1_model:
+    #     model = Sequential([
+    #         Input( shape=input_dims),
             #-------------------------------------------------------
             # Changes - J
 
@@ -80,20 +87,20 @@ def build_dqn(lr, n_actions, input_dims, fc1_dims, fc2_dims, use_v1_model=False)
             # if not then use the other model
             
             #--------------------------------------------------------
-            Conv2D(filters=128 , activation="relu", kernel_size=(5,5)),
-            Conv2D(filters=256, activation="relu", kernel_size=(5,5)),
-            Conv2D(filters=512, activation="relu", kernel_size=(5,5)),
-            Flatten(),
+            # Conv2D(filters=128 , activation="relu", kernel_size=(5,5)),
+            # Conv2D(filters=256, activation="relu", kernel_size=(5,5)),
+            # Conv2D(filters=512, activation="relu", kernel_size=(5,5)),
+            # Flatten(),
             # If there will be errors persisting, relu activation will be added
             # Conv2D('relu', filter=128),
 
             # Later we might uncomment this part, however the paper hasn't mentioned anything regarding this type of syntax
             # Dense(fc2_dims),
             # Activation('relu'),
-            Dense(n_actions, activation = 'softmax') 
+            # Dense(n_actions, activation = 'softmax') 
             # n_actions will be 3 (buy, sell, hold)
-        ])
-    else:
+    #     ])
+    # else:
 #         model = Sequential([
 #                 layers.Conv2D(filters=16, kernel_size=(3,3), activation='relu', input_shape=(200,300,4)),
 #                 # THIS IS SUPER DUMB THAT I USED POOLING
@@ -120,7 +127,7 @@ def build_dqn(lr, n_actions, input_dims, fc1_dims, fc2_dims, use_v1_model=False)
 #                 layers.Dense(64, activation='relu'),
 #                 layers.Dense(n_actions, activation='softmax')
 #         ])
-          model = DeepNet(n_actions) 
+          #model = DeepNet(n_actions) 
 
         # Input(shape=(200,300,4)),
         # Dense(fc1_dims, ),
@@ -135,13 +142,13 @@ def build_dqn(lr, n_actions, input_dims, fc1_dims, fc2_dims, use_v1_model=False)
         # MaxPooling2D((2, 2)),
         # Conv2D(64, (3, 3), activation='relu'),
 
-    model.compile(optimizer=Adam(lr=lr), loss='categorical_crossentropy')
+    model.compile(optimizer=Adam(lr=lr), loss='mse')
     return model
 
 
 
 class Agent(object):
-    def __init__(self, alpha, gamma, n_actions, epsilon, batch_size, input_dims, epsilon_dec=0.996, epsilon_end=0.01, mem_size=1000000, fname='Model_Alpha.h5', replace_target=100, use_v1_model=False):
+    def __init__(self, alpha, gamma, n_actions, epsilon, batch_size, input_dims, model_type, epsilon_dec=0.996, epsilon_end=0.01, mem_size=1000000, fname='Model_Alpha.h5', replace_target=100):
         self.n_actions = n_actions
         self.action_space = [i for i in range(self.n_actions)]
         self.model_file=fname
@@ -154,8 +161,8 @@ class Agent(object):
         self.replace_target = replace_target
         self.memory = ReplayBuffer(mem_size, input_dims, n_actions, True)
         #added passing of boolean of use_v1_model
-        self.q_eval = build_dqn(alpha, n_actions, input_dims, 256, 256, use_v1_model) #theres no point to the input dims parameter
-        self.q_target = build_dqn(alpha, n_actions, input_dims, 256, 256, use_v1_model)
+        self.q_eval = build_dqn(alpha, n_actions, input_dims, 256, 256, model_type)
+        self.q_target = build_dqn(alpha, n_actions, input_dims, 256, 256, model_type)
 
     def remember(self, state, action, reward, new_state, done, ):
         self.memory.store_transition(state, action, reward, new_state, done, ) 
