@@ -12,10 +12,13 @@ if __name__ == '__main__':
     observation = env.reset()
     
     done = True
+
+    #Implmentation of changing model via main:
+    models = ['shallow', 'deep', 'deepnet']
+    model = models[0] #Change which element of the list for which model you would like to run
     
-    use_original_model = False;
-    
-    if use_original_model:
+    #If the model is the shallow (original) model then we need use the shape [200,300,4] otherwise 240000
+    if model == 'shallow':
         input_dimensions = [200,300,4]
     else:
         input_dimensions = 240000
