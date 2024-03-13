@@ -2,7 +2,7 @@ import keras
 keras.__version__
 
 
-from model import DeepNet
+from model import DeepNet, shallowModel, deepModel
 import tensorflow as tf
 from keras.layers import Dense, Activation, Conv2D, Input, Flatten
 from keras.models import Sequential, load_model
