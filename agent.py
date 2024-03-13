@@ -10,6 +10,7 @@ from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import concatenate, TimeDistributed , Conv2D, MaxPooling2D
 from tensorflow.keras import layers
+from tensorflow.keras.losses import Huber
 import numpy as np
 import sys
 
@@ -142,13 +143,13 @@ def build_dqn(lr, n_actions, input_dims, fc1_dims, fc2_dims, model_type):
         # MaxPooling2D((2, 2)),
         # Conv2D(64, (3, 3), activation='relu'),
 
-    model.compile(optimizer=Adam(lr=lr), loss='mse')
+    model.compile(optimizer=Adam(lr=lr), loss=Huber())
     return model
 
 
 
 class Agent(object):
-    def __init__(self, alpha, gamma, n_actions, epsilon, batch_size, input_dims, model_type, epsilon_dec=0.996, epsilon_end=0.01, mem_size=1000000, fname='Model_Alpha.h5', replace_target=100):
+    def __init__(self, alpha, gamma, n_actions, epsilon, batch_size, input_dims, model_type, epochs, epsilon_dec=0.996, epsilon_end=0.01, mem_size=1000000, fname='Model_Alpha.h5', replace_target=100):
         self.n_actions = n_actions
         self.action_space = [i for i in range(self.n_actions)]
         self.model_file=fname
@@ -158,6 +159,7 @@ class Agent(object):
         self.epsilon_min  = epsilon_end
         self.batch_size = batch_size
         self.model = fname
+        self.epochs = epochs
         self.replace_target = replace_target
         self.memory = ReplayBuffer(mem_size, input_dims, n_actions, True)
         #added passing of boolean of use_v1_model
@@ -210,7 +212,7 @@ class Agent(object):
             q_target[batch_index, action_indeces] = reward + self.gamma * q_next[batch_index, max_actions.astype(int)] *done
 
 
-            _ = self.q_eval.fit(fix2, q_target, epochs=64, verbose=2)
+            _ = self.q_eval.fit(fix2, q_target, epochs=self.epochs, verbose=2)
 
             self.epsilon = self.epsilon*self.epsilon_dec if self.epsilon > self.epsilon_min else self.epsilon_min
 
