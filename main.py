@@ -24,7 +24,7 @@ if __name__ == '__main__':
         input_dimensions = 240000
     
     
-    agent = Agent(gamma=0.9, epsilon=0.96, alpha=0.05, input_dims=input_dimensions, model_type=model, n_actions=3, mem_size=1000, batch_size=16, epsilon_end=0.01)
+    agent = Agent(gamma=0.9, epsilon=0.96, alpha=0.05, input_dims=input_dimensions, model_type=model, n_actions=3, mem_size=1000, batch_size=64, epsilon_end=0.01)
     # TODO You made dumb dimentions and fucked up the layers in th(e model
 
     scores = []
